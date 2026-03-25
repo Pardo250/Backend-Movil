@@ -20,6 +20,8 @@
   },
   "homepage": "https://github.com/Pardo250/Backend-Movil#readme",
   "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "morgan": "^1.10.1",
     "pg": "^8.20.0",
