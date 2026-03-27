@@ -38,3 +38,65 @@ export const getArticuloById = async (req, res) => {
     });
   }
 };
+
+// CREATE
+export const createArticulo = async (req, res) => {
+  try {
+    const { titulo, contenido, usuarioId } = req.body;
+
+    if (!titulo || !contenido || !usuarioId) {
+      return res.status(400).json({ message: "Faltan datos" });
+    }
+
+    const articulo = await Articulo.create({ titulo, contenido, usuarioId });
+
+    res.status(201).json(articulo);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// UPDATE
+export const updateArticulo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { titulo, contenido } = req.body;
+
+    const articulo = await Articulo.findByPk(id);
+
+    if (!articulo) {
+      return res.status(404).json({ message: "Articulo no encontrado" });
+    }
+
+    articulo.titulo = titulo ?? articulo.titulo;
+    articulo.contenido = contenido ?? articulo.contenido;
+
+    await articulo.save();
+
+    res.json(articulo);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// DELETE
+export const deleteArticulo = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const articulo = await Articulo.findByPk(id);
+
+    if (!articulo) {
+      return res.status(404).json({ message: "Articulo no encontrado" });
+    }
+
+    await articulo.destroy();
+
+    res.json({ message: "Articulo eliminado" });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
