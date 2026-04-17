@@ -42,13 +42,13 @@ export const getArticuloById = async (req, res) => {
 // CREATE
 export const createArticulo = async (req, res) => {
   try {
-    const { titulo, descripcion, tipo } = req.body;
+    const { titulo, descripcion, tipo, imagenUrl } = req.body;
 
     if (!titulo || !tipo) {
       return res.status(400).json({ message: "Faltan datos requeridos (titulo, tipo)" });
     }
 
-    const articulo = await Articulo.create({ titulo, descripcion, tipo });
+    const articulo = await Articulo.create({ titulo, descripcion, tipo, imagenUrl });
 
     res.status(201).json(articulo);
 
@@ -61,7 +61,7 @@ export const createArticulo = async (req, res) => {
 export const updateArticulo = async (req, res) => {
   try {
     const { id } = req.params;
-    const { titulo, descripcion, tipo } = req.body;
+    const { titulo, descripcion, tipo, imagenUrl } = req.body;
 
     const articulo = await Articulo.findByPk(id);
 
@@ -72,6 +72,7 @@ export const updateArticulo = async (req, res) => {
     articulo.titulo = titulo ?? articulo.titulo;
     articulo.descripcion = descripcion ?? articulo.descripcion;
     articulo.tipo = tipo ?? articulo.tipo;
+    articulo.imagenUrl = imagenUrl ?? articulo.imagenUrl;
 
     await articulo.save();
 

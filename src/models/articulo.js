@@ -19,6 +19,10 @@ const Articulo = sequelize.define('Articulo', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  imagenUrl: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 }, {
   timestamps: true,
   tableName: 'articulos',
