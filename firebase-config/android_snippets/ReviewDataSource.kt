@@ -17,11 +17,9 @@ class ReviewDataSource @Inject constructor(
                 val snapshot = transaction.get(likeRef)
 
                 if (snapshot.exists()) {
-                    // DISLIKE: Si existe el like, lo borramos y restamos 1 al contador global
                     transaction.delete(likeRef)
                     transaction.update(reviewRef, "likesCount", FieldValue.increment(-1))
                 } else {
-                    // LIKE: Si NO existe, lo creamos y sumamos 1 al contador global
                     transaction.set(likeRef, hashMapOf("date" to FieldValue.serverTimestamp()))
                     transaction.update(reviewRef, "likesCount", FieldValue.increment(1))
                 }

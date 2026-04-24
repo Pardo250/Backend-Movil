@@ -2,48 +2,54 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Función de ayuda para verificar si el usuario está logueado
     function isAuth() {
       return request.auth != null;
     }
 
-    // ==========================================
-    // REGLAS PARA REVIEWS Y LIKES
-    // ==========================================
     match /reviews/{reviewId} {
-      allow read: if true; // Todos pueden leer las reviews
+      allow read: if true;
       
-      // Reglas para crear/editar la review
-      allow write: if isAuth() 
-        && request.resource.data.contenido.size() < 300 // Límite de caracteres
-        && request.resource.data.usuarioId == request.auth.uid // El autor es el creador real
-        && request.resource.data.likesCount is int // El contador debe ser un número entero
-        && request.resource.data.likesCount >= 0; // No pueden haber likes negativos
+      allow create: if isAuth() 
+        && request.resource.data.contenido.size() < 300 
+        && request.resource.data.usuarioId == request.auth.uid 
+        && request.resource.data.likesCount is int 
+        && request.resource.data.likesCount >= 0;
         
-      // Reglas para la subcolección "likes"
+      allow update: if isAuth() 
+        && (
+          (request.resource.data.usuarioId == request.auth.uid)
+          ||
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount'])
+           && request.resource.data.likesCount is int
+           && request.resource.data.likesCount >= 0)
+        );
+
+      allow delete: if isAuth() && resource.data.usuarioId == request.auth.uid;
+        
       match /likes/{userId} {
         allow read: if true;
-        // Solo puedes dar like a tu propio nombre (el ID del doc debe ser tu UID)
         allow write: if isAuth() && userId == request.auth.uid;
       }
     }
 
-    // ==========================================
-    // REGLAS PARA USUARIOS Y FOLLOWERS
-    // ==========================================
     match /usuarios/{userId} {
       allow read: if true;
       
-      // El usuario solo puede editar su propio perfil y el contador no baja de 0
-      allow write: if isAuth() 
-        && userId == request.auth.uid 
-        && request.resource.data.countFollowers is int
-        && request.resource.data.countFollowers >= 0;
+      allow create: if isAuth() && userId == request.auth.uid;
+      
+      allow update: if isAuth() 
+        && (
+          (userId == request.auth.uid)
+          ||
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['countFollowers'])
+           && request.resource.data.countFollowers is int
+           && request.resource.data.countFollowers >= 0)
+        );
+
+      allow delete: if isAuth() && userId == request.auth.uid;
         
-      // Reglas para la subcolección "followers"
       match /followers/{followerId} {
         allow read: if true;
-        // Solo el usuario actual puede añadir su registro como "seguidor" en el perfil de otro
         allow write: if isAuth() && followerId == request.auth.uid;
       }
     }

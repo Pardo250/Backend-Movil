@@ -17,11 +17,9 @@ class UserDataSource @Inject constructor(
                 val snapshot = transaction.get(followerRef)
 
                 if (snapshot.exists()) {
-                    // UNFOLLOW
                     transaction.delete(followerRef)
                     transaction.update(targetUserRef, "countFollowers", FieldValue.increment(-1))
                 } else {
-                    // FOLLOW
                     transaction.set(followerRef, hashMapOf("date" to FieldValue.serverTimestamp()))
                     transaction.update(targetUserRef, "countFollowers", FieldValue.increment(1))
                 }

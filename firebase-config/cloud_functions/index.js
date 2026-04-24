@@ -18,7 +18,6 @@ exports.sendFollowerNotification = functions.firestore
             const fcmToken = userData.fcmToken;
 
             if (!fcmToken) {
-                console.log('El usuario no tiene token de notificación. Ignorando.');
                 return null;
             }
 
@@ -33,10 +32,9 @@ exports.sendFollowerNotification = functions.firestore
                 }
             };
             await admin.messaging().sendToDevice(fcmToken, payload);
-            console.log('Notificación enviada correctamente a:', userId);
 
         } catch (error) {
-            console.error('Error enviando la notificación:', error);
+            console.error(error);
         }
 
         return null;
@@ -45,5 +43,52 @@ exports.sendFollowerNotification = functions.firestore
 exports.sendLikeNotification = functions.firestore
     .document('reviews/{reviewId}/likes/{userId}')
     .onCreate(async (snap, context) => {
+        const reviewId = context.params.reviewId;
+        const likerId = context.params.userId;
+
+        try {
+            const likerDoc = await admin.firestore().collection('usuarios').doc(likerId).get();
+            const likerData = likerDoc.data();
+            const likerName = likerData?.nombre || 'Alguien';
+
+            const reviewDoc = await admin.firestore().collection('reviews').doc(reviewId).get();
+            const reviewData = reviewDoc.data();
+
+            if (!reviewData || !reviewData.usuarioId) {
+                return null;
+            }
+
+            const authorId = reviewData.usuarioId;
+
+            if (likerId === authorId) {
+                return null;
+            }
+
+            const authorDoc = await admin.firestore().collection('usuarios').doc(authorId).get();
+            const authorData = authorDoc.data();
+            const fcmToken = authorData?.fcmToken;
+
+            if (!fcmToken) {
+                return null;
+            }
+
+            const payload = {
+                notification: {
+                    title: 'A alguien le gustó tu review',
+                    body: `A ${likerName} le ha gustado tu publicación.`,
+                },
+                data: {
+                    type: 'new_like',
+                    reviewId: reviewId,
+                    likerId: likerId
+                }
+            };
+
+            await admin.messaging().sendToDevice(fcmToken, payload);
+
+        } catch (error) {
+            console.error(error);
+        }
+
         return null;
     });
